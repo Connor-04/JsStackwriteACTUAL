@@ -6,13 +6,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="" />
 
-  <!-- calls for the arcgis api's CSS file and JS library. -->
+  <!-- ArcGIS API for JavaScript -->
   <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.25/"></script>
 
-  <!-- Adding the modules, API key, and map constant needed for a full screen map app -->
   <script>
-  
     require([
       "esri/config",
       "esri/Map",
@@ -20,15 +18,19 @@
       "esri/Graphic",
       "esri/layers/GraphicsLayer",
       "esri/layers/FeatureLayer",
-      "esri/widgets/Editor"
-    ], function (esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Editor) {
+      "esri/widgets/Editor",
+      "esri/widgets/Legend"
+    ], function (esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Editor, Legend) {
 
+      // set the API key
       esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurNAUgv3aeRUmzJ4ckMevLQLfVJhdc-z1-a5rmBvbZM6HiAtWhTkHR1uPqL3lwJdP49LWHB6rjySi-OGZeNP1ea6oiztHSf22dFyO6r4o94L1an9zLTOBsN3vlqSz7k8MyUO9e1udJ3zNViSQ518xOFVwCnGBfyh40rSb4E2X3zsumGVzsUowRjXGPUi8Odwr1Y9iVZinjPQa-7TSBIuR8E4.AT1_EtHHMprs";
-      
+
+      // create a map
       const map = new Map({
         basemap: "arcgis-topographic"
       });
 
+      // create a view
       const view = new MapView({
         map: map,
         center: [-97.7431, 30.2672],
@@ -36,34 +38,39 @@
         container: "viewDiv"
       });
 
+      // create a graphics layer
       const graphicsLayer = new GraphicsLayer();
       map.add(graphicsLayer);
 
-      const point = { 
+      // define the point location
+      const point = {
         type: "point",
         longitude: -97.750689,
-        latitude: 30.263098 
+        latitude: 30.263098
       };
-      
+
+      // define the point symbol
       const simpleMarkerSymbol = {
         type: "simple-marker",
-        color: [0, 0, 139],  
+        color: [0, 0, 139],
         outline: {
           color: [255, 255, 255],
           width: 1
         }
       };
 
+      // define popup information
       const popupTemplate = {
         title: "{Name}",
         content: "{Description}"
-      }
+      };
 
       const attributes = {
         Name: "Stevie Ray Vaughan Statue",
         Description: "A bronze sculpture of Stevie Ray Vaughan by Ralph Helmick"
-      }
+      };
 
+      // create the point graphic
       const pointGraphic = new Graphic({
         geometry: point,
         symbol: simpleMarkerSymbol,
@@ -73,29 +80,33 @@
 
       graphicsLayer.add(pointGraphic);
 
+      // popup for colleges
       const popupEduusa = {
-        "title": "EDUs",
-        "content": "<b>Name:</b> {NAME}<br><b>Total Enrollment:</b> {TOT_ENROLL}<br>"
-      }
+        title: "EDUs",
+        content: "<b>Name:</b> {NAME}<br><b>Total Enrollment:</b> {TOT_ENROLL}<br>"
+      };
 
+      // feature layer for colleges
       const usaeduLayer = new FeatureLayer({
         url: "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Colleges_and_Universities_View/FeatureServer",
-        outFields: ["NAME","TOT_ENROLL"],
+        outFields: ["NAME", "TOT_ENROLL"],
         popupTemplate: popupEduusa
       });
 
       map.add(usaeduLayer);
 
+      // icon for airports
       const airportRenderer = {
-        "type": "simple",
-        "symbol": {
-          "type": "picture-marker",
-          "url": "https://sounny.github.io/agol/outline_local_airport_black_24dp.png",
-          "width": "18px",
-          "height": "18px"
+        type: "simple",
+        symbol: {
+          type: "picture-marker",
+          url: "https://sounny.github.io/agol/outline_local_airport_black_24dp.png",
+          width: "18px",
+          height: "18px"
         }
       };
 
+      // labels for airports
       const airportLabels = {
         symbol: {
           type: "text",
@@ -124,39 +135,76 @@
 
       map.add(airportLayer);
 
-      // Adding the new "myAirports" blank feature layer
+      // symbol for My Airports Popp
+      const myAirportRenderer = {
+        type: "simple",
+        symbol: {
+          type: "picture-marker",
+          url: "https://sounny.github.io/agol/outline_local_airport_black_24dp.png",
+          width: "20px",
+          height: "20px"
+        }
+      };
+
+      // label for My Airports Popp
+      const myAirportLabels = {
+        symbol: {
+          type: "text",
+          color: "#000000",
+          haloColor: "#FFFFFF",
+          haloSize: "1px",
+          font: {
+            size: "12px",
+            family: "Noto Sans",
+            weight: "bold"
+          }
+        },
+        labelPlacement: "above-center",
+        labelExpressionInfo: {
+          expression: "$feature.AirportCode"
+        }
+      };
+
+      // create My Airports Popp layer
       const myAirports = new FeatureLayer({
         url: "https://services.arcgis.com/LBbVDC0hKPAnLRpO/arcgis/rest/services/My_Airports_Popp/FeatureServer",
-        outFields: ["AirportCode"]
+        outFields: ["AirportCode"],
+        renderer: myAirportRenderer,
+        labelingInfo: [myAirportLabels]
       });
 
       map.add(myAirports);
 
-      // Set the point layer's LayerInfo
+      // define the editor target
       const pointInfos = {
         layer: myAirports
       };
 
-      // Begin Editor constructor linked to myAirports
+      // create editor widget
       const editor = new Editor({
         view: view,
         layerInfos: [pointInfos]
-      }); // End Editor constructor
+      });
 
-      // Add the widget to the view
       view.ui.add(editor, "top-right");
+
+      // create legend widget
+      const legend = new Legend({
+        view: view
+      });
+
+      // add legend to view
+      view.ui.add(legend, "bottom-right");
 
     });
   </script>
 
-  <!-- css to make a full screen map -->
+  <!-- make the map full screen -->
   <style>
-    html,
-    body,
-    #viewDiv {
+    html, body, #viewDiv {
       padding: 0;
       margin: 0;
-      height: 100%; 
+      height: 100%;
       width: 100%;
     }
   </style>
@@ -164,7 +212,7 @@
 </head>
 <body>
 
-  <!-- the div to display the map -->
+  <!-- container for the map -->
   <div id="viewDiv"></div>
 
 </body>
