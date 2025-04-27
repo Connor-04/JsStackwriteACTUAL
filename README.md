@@ -1,2 +1,2 @@
 # esrijs
-My Esri JS Map accessing AGOL
+Connor Popp
